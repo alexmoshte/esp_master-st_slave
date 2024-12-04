@@ -1,0 +1,99 @@
+#include <Arduino.h>
+#include "Wire.h"
+
+#define I2C_DEV_ADDR 0x12
+#define I2C_NUM I2C_NUM_0
+#define I2C_SCL GPIO_NUM_22
+#define I2C_SDA GPIO_NUM_21
+#define SCL_FRQNCY 100000
+
+
+uint32_t i=0;
+
+//FUNCTION DECLARATIONS
+void Read_bytes(void);
+void Write_Strng(void);
+
+void setup() 
+{
+  Serial.begin(115200);
+  Serial.setDebugOutput(true);
+  //Wire.begin();
+  Wire.begin(I2C_SDA, I2C_SCL);
+  Wire.setClock(SCL_FRQNCY);
+  //delay(5000);
+  Serial.println("I2C successfully initialized!");
+  
+}
+
+void loop() 
+{
+  delay(2500);
+
+  Serial.printf("Writing to I2C slave\n");
+  /*Writing to slave*/
+  Write_Strng();
+  
+  //delay(100);
+
+  Serial.printf("Reading from I2C slave\n");
+  /*Reading from slave*/
+  Read_bytes();
+}
+
+
+// FUNCTION DEFINITIONS
+
+/*Writing String to slave*/
+void Write_Strng(void)
+{
+  Wire.beginTransmission(I2C_DEV_ADDR);
+  Wire.write("moshte");
+  Wire.write(i);
+  uint8_t error = Wire.endTransmission(true);
+  //Serial.printf("endTransmisssion: %u\n", error);
+
+  if (error == 0)
+  {
+    Serial.printf("Write succesfull: moshte %u\n", i);
+    i++;
+  }
+  else
+  {
+    Serial.printf("Write failure!\n");
+  }
+}
+
+/*Reading 16 bytes from slave*/
+void Read_bytes(void)
+{
+  uint8_t bytesReceived = Wire.requestFrom(I2C_DEV_ADDR, 16); //Requesting data from the slave 
+  Serial.printf ("requestFrom: %u\n", bytesReceived);
+
+
+  if (bytesReceived > 0)
+  {
+    //uint8_t RxData[bytesReceived];
+    char RxData[bytesReceived];
+    for (uint8_t i =0; i < bytesReceived; i++)
+    {
+      RxData[i]=Wire.read();
+    }
+     
+    Serial.println("Read successfull");
+    Serial.println("Received Data:\n");
+
+    for (uint8_t i=0; i< bytesReceived; i++)
+    {
+      Serial.printf("%c", RxData[i]);
+    }
+    
+
+  }
+  else
+  {
+    Serial.println("Read failure!\n");
+
+  }
+}
+
